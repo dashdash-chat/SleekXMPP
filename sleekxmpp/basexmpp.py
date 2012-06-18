@@ -68,6 +68,7 @@ class BaseXMPP(XMLStream):
 
         #: The JabberID (JID) used by this connection. 
         self.boundjid = JID(jid)
+        self._expected_server_name = self.boundjid.host
 
         #: A dictionary mapping plugin names to plugins.
         self.plugin = PluginManager(self)
@@ -529,12 +530,15 @@ class BaseXMPP(XMLStream):
         :param pnick: Optional nickname of the presence's sender.
         """
         # Python2.6 chokes on Unicode strings for dict keys.
-        args = {str('pto'): pto,
-                str('ptype'): ptype,
+        args = {str('ptype'): ptype,
                 str('pshow'): pshow,
                 str('pstatus'): pstatus,
                 str('ppriority'): ppriority,
                 str('pnick'): pnick}
+
+        if ptype in ('probe', 'subscribe', 'subscribed', \
+                     'unsubscribe', 'unsubscribed'):
+            args[str('pto')] = pto.bare
 
         if self.is_component:
             self.roster[pfrom].send_presence(**args)
@@ -553,14 +557,10 @@ class BaseXMPP(XMLStream):
         :param ptype: The type of presence, such as ``'subscribe'``.
         :param pnick: Optional nickname of the presence's sender.
         """
-        presence = self.makePresence(ptype=ptype,
-                                     pfrom=pfrom,
-                                     pto=self.getjidbare(pto))
-        if pnick:
-            nick = ET.Element('{http://jabber.org/protocol/nick}nick')
-            nick.text = pnick
-            presence.append(nick)
-        presence.send()
+        self.send_presence(pto=pto,
+                           pfrom=pfrom,
+                           ptype=ptype,
+                           pnick=pnick)
 
     @property
     def jid(self):
@@ -736,7 +736,8 @@ class BaseXMPP(XMLStream):
         if not self.is_component and not presence['to'].bare:
             presence['to'] = self.boundjid
 
-        self.event("presence_%s" % presence['type'], presence)
+        self.event('presence', presence)
+        self.event('presence_%s' % presence['type'], presence)
 
         # Check for changes in subscription state.
         if presence['type'] in ('subscribe', 'subscribed',

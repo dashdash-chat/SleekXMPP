@@ -79,7 +79,7 @@ class ComponentXMPP(BaseXMPP):
                                self._handle_probe)
 
     def connect(self, host=None, port=None, use_ssl=False, 
-                      use_tls=True, reattempt=True):
+                      use_tls=False, reattempt=True):
         """Connect to the server.
 
         Setting ``reattempt`` to ``True`` will cause connection attempts to
@@ -101,10 +101,16 @@ class ComponentXMPP(BaseXMPP):
             host = self.server_host
         if port is None:
             port = self.server_port
+
+        self.server_name = self.boundjid.host
+
+        if use_tls:
+            log.info("XEP-0114 components can not use TLS")
+
         log.debug("Connecting to %s:%s", host, port)
         return XMLStream.connect(self, host=host, port=port,
                                        use_ssl=use_ssl,
-                                       use_tls=use_tls,
+                                       use_tls=False,
                                        reattempt=reattempt)
 
     def incoming_filter(self, xml):

@@ -67,6 +67,7 @@ packages     = [ 'sleekxmpp',
                  'sleekxmpp/plugins/xep_0059',
                  'sleekxmpp/plugins/xep_0060',
                  'sleekxmpp/plugins/xep_0060/stanza',
+                 'sleekxmpp/plugins/xep_0065',
                  'sleekxmpp/plugins/xep_0066',
                  'sleekxmpp/plugins/xep_0077',
                  'sleekxmpp/plugins/xep_0078',
@@ -112,7 +113,7 @@ setup(
     license      = 'MIT',
     platforms    = [ 'any' ],
     packages     = packages,
-    requires     = [ 'dnspython' ],
+    requires     = [ 'dnspython', 'pyasn1', 'pyasn1_modules' ],
     classifiers  = CLASSIFIERS,
     cmdclass     = {'test': TestCommand}
 )
